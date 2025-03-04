@@ -48,3 +48,7 @@ yarn.lock
 
 # Misc
 .cache/
+
+# GitHub Pages deployment
+/out
+/gh-pages
