@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "next.config.js",
+      "src": "package.json",
       "use": "@vercel/next"
     }
   ],
@@ -11,5 +11,9 @@
       "src": "/(.*)",
       "dest": "/"
     }
-  ]
+  ],
+  "env": {
+    "NEXT_PUBLIC_CLAUDE_API_KEY": "@claude_api_key",
+    "NEXT_PUBLIC_CLAUDE_API_URL": "@claude_api_url"
+  }
 }
