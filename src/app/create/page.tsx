@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/Header';
@@ -30,7 +30,7 @@ type VersionHistory = {
 
 type DeviceType = 'desktop' | 'tablet' | 'mobile';
 
-export default function CreatePage() {
+function CreatePageContent() {
   const searchParams = useSearchParams();
   const initialPrompt = searchParams.get('prompt') || '';
   
@@ -1046,4 +1046,12 @@ export default function CreatePage() {
       )}
     </div>
   );
-} 
+}
+
+export default function CreatePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CreatePageContent />
+    </Suspense>
+  );
+}
