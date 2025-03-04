@@ -1,0 +1,169 @@
+import axios from 'axios';
+
+// Initialize Anthropic Claude client
+const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
+const CLAUDE_API_URL = process.env.CLAUDE_API_URL || 'https://api.anthropic.com/v1/messages';
+
+export type GeneratedCode = {
+  html: string;
+  css: string;
+  javascript: string;
+  fullCode: string;
+};
+
+export type GenerationOptions = {
+  type: 'website' | 'webapp' | 'landing-page' | 'dashboard';
+  features: string[];
+  style: {
+    colorScheme: string;
+    layout: string;
+  };
+};
+
+/**
+ * Generate code based on a natural language prompt using Claude
+ */
+export async function generateCode(
+  prompt: string,
+  options?: Partial<GenerationOptions>
+): Promise<GeneratedCode> {
+  try {
+    console.log('Generating code with Claude API...');
+    console.log('API URL:', CLAUDE_API_URL);
+    console.log('API Key available:', !!CLAUDE_API_KEY);
+    console.log('Prompt:', prompt);
+    console.log('Options:', JSON.stringify(options));
+    
+    if (!CLAUDE_API_KEY) {
+      throw new Error('Claude API key is missing. Check your .env.local file.');
+    }
+    
+    const requestBody = {
+      model: "claude-3-opus-20240229",
+      max_tokens: 4000,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Generate HTML, CSS, and JavaScript code for a website based on this description: ${prompt}
+              
+              If provided, use these options: ${JSON.stringify(options)}
+              
+              Please provide the code in three separate sections:
+              1. HTML code (wrapped in \`\`\`html tags)
+              2. CSS code (wrapped in \`\`\`css tags)
+              3. JavaScript code (wrapped in \`\`\`javascript tags)
+              
+              Make sure the code is complete, functional, and follows best practices.`
+            }
+          ]
+        }
+      ]
+    };
+    
+    console.log('Request body:', JSON.stringify(requestBody, null, 2));
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-api-key': CLAUDE_API_KEY,
+      'anthropic-version': '2023-06-01'
+    };
+    
+    console.log('Request headers:', JSON.stringify({
+      'Content-Type': headers['Content-Type'],
+      'anthropic-version': headers['anthropic-version'],
+      'x-api-key': 'REDACTED'
+    }, null, 2));
+    
+    try {
+      const response = await axios.post(
+        CLAUDE_API_URL,
+        requestBody,
+        { headers }
+      );
+      
+      console.log('Claude API response received');
+      console.log('Response status:', response.status);
+      console.log('Response data structure:', Object.keys(response.data));
+      
+      // Parse the response to extract HTML, CSS, and JavaScript
+      const responseContent = response.data.content[0].text;
+      console.log('Response content length:', responseContent.length);
+      console.log('Response content preview:', responseContent.substring(0, 200) + '...');
+      
+      const htmlMatch = responseContent.match(/```html\n([\s\S]*?)```/);
+      const cssMatch = responseContent.match(/```css\n([\s\S]*?)```/);
+      const jsMatch = responseContent.match(/```javascript\n([\s\S]*?)```/);
+      
+      console.log('HTML match found:', !!htmlMatch);
+      console.log('CSS match found:', !!cssMatch);
+      console.log('JS match found:', !!jsMatch);
+      
+      if (!htmlMatch || !cssMatch || !jsMatch) {
+        throw new Error('Failed to parse Claude response. Make sure the API is returning code in the expected format.');
+      }
+      
+      const html = htmlMatch[1];
+      const css = cssMatch[1];
+      const javascript = jsMatch[1];
+      
+      // Combine all code into a single HTML file for preview
+      const fullCode = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generated App</title>
+  <style>
+${css}
+  </style>
+</head>
+<body>
+${html.split('<link rel="stylesheet" href="styles.css">').join('').split('<script src="script.js"></script>').join('')}
+  <script>
+${javascript}
+  </script>
+</body>
+</html>
+      `;
+      
+      return {
+        html,
+        css,
+        javascript,
+        fullCode,
+      };
+    } catch (axiosError: any) {
+      console.error('Axios error during Claude API call:', axiosError.message);
+      if (axiosError.response) {
+        console.error('Response status:', axiosError.response.status);
+        console.error('Response data:', axiosError.response.data);
+      }
+      throw axiosError;
+    }
+  } catch (error) {
+    console.error('Error generating code with Claude API:', error);
+    throw error; // Re-throw the error instead of falling back to mock data
+  }
+}
+
+/**
+ * Deploy the generated code to a hosting service
+ */
+export async function deployCode(code: GeneratedCode, name: string): Promise<string> {
+  try {
+    // In a production environment, you would call a deployment service API
+    // For demo purposes, we'll simulate a deployment
+    
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Mock deployment URL
+    return `https://example-deployment.vercel.app/${name.toLowerCase().replace(/\s+/g, '-')}`;
+  } catch (error) {
+    console.error('Error deploying code:', error);
+    throw new Error('Failed to deploy code');
+  }
+} 
