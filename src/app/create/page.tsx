@@ -1,5 +1,36 @@
 'use client';
 
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+// Dynamically import the CreatePageContent with Suspense
+const CreatePageContent = dynamic(() => import('./CreatePageContent'), {
+  loading: () => <div>Loading...</div>,
+  ssr: false
+});
+
+export default function CreatePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CreatePageContentWrapper />
+    </Suspense>
+  );
+}
+
+function CreatePageContentWrapper() {
+  const searchParams = useSearchParams();
+  const initialPrompt = searchParams.get('prompt') || '';
+
+  return (
+    <CreatePageContent 
+      initialPrompt={initialPrompt}
+      searchParams={searchParams}
+    />
+  );
+}
+
+// CreatePageContent.tsx
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/Header';
@@ -29,12 +60,12 @@ type VersionHistory = {
 
 type DeviceType = 'desktop' | 'tablet' | 'mobile';
 
-export default function CreatePage({
+export default function CreatePageContent({
   searchParams
 }: {
   searchParams: { prompt?: string }
 }) {
-  const initialPrompt = searchParams.prompt || '';
+  const initialPrompt = searchParams.get('prompt') || '';
   
   const [prompt, setPrompt] = useState(initialPrompt);
   const [isGenerating, setIsGenerating] = useState(false);

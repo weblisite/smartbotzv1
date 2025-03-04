@@ -11,7 +11,7 @@ import { generateCode, GeneratedCode, GenerationOptions, Framework } from '@/ser
 import { deployToHosting, DeploymentOptions, DeploymentResult, getAvailableProviders } from '@/services/deploymentService';
 import DeviceSwitcher from '@/components/DeviceSwitcher';
 
-// Define types
+// Define a type for conversation messages
 type Message = {
   id: string;
   role: 'user' | 'assistant';
@@ -19,6 +19,7 @@ type Message = {
   timestamp: Date;
 };
 
+// Define a type for version history
 type VersionHistory = {
   id: string;
   timestamp: Date;
@@ -28,13 +29,11 @@ type VersionHistory = {
 
 type DeviceType = 'desktop' | 'tablet' | 'mobile';
 
-type CreatePageContentProps = {
-  initialPrompt?: string;
-};
-
 export default function CreatePageContent({ 
-  initialPrompt = '' 
-}: CreatePageContentProps) {
+  initialPrompt 
+}: { 
+  initialPrompt: string 
+}) {
   const [prompt, setPrompt] = useState(initialPrompt);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode | null>(null);
