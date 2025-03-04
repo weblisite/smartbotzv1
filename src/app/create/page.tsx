@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -30,9 +29,12 @@ type VersionHistory = {
 
 type DeviceType = 'desktop' | 'tablet' | 'mobile';
 
-function CreatePageContent() {
-  const searchParams = useSearchParams();
-  const initialPrompt = searchParams.get('prompt') || '';
+export default function CreatePage({
+  searchParams
+}: {
+  searchParams: { prompt?: string }
+}) {
+  const initialPrompt = searchParams.prompt || '';
   
   const [prompt, setPrompt] = useState(initialPrompt);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -105,43 +107,10 @@ function CreatePageContent() {
     if (initialPrompt && !generatedCode && !isGenerating && messages.length === 0 && !initialGenerationTriggered.current) {
       console.log('Triggering initial code generation from URL prompt');
       initialGenerationTriggered.current = true;
-      handleSubmit(new Event('submit') as any);
+      const dummyEvent = new Event('submit') as any;
+      handleSubmit(dummyEvent);
     }
   }, [initialPrompt]);
-
-  // Thinking animation effect
-  useEffect(() => {
-    if (!isAiThinking) {
-      setThinkingStage(0);
-      setThinkingText('');
-      return;
-    }
-
-    const thinkingMessages = [
-      "Analyzing your request...",
-      "Planning HTML/CSS/JS structure...",
-      "Designing responsive layout...",
-      "Implementing requested features...",
-      "Optimizing code for performance..."
-    ];
-
-    // Start with first message
-    setThinkingText(thinkingMessages[0]);
-    
-    // Progress through thinking stages
-    const interval = setInterval(() => {
-      setThinkingStage(prev => {
-        const nextStage = prev + 1;
-        if (nextStage < thinkingMessages.length) {
-          setThinkingText(thinkingMessages[nextStage]);
-          return nextStage;
-        }
-        return prev;
-      });
-    }, 2000);
-    
-    return () => clearInterval(interval);
-  }, [isAiThinking]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1045,13 +1014,5 @@ function CreatePageContent() {
         </div>
       )}
     </div>
-  );
-}
-
-export default function CreatePage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <CreatePageContent />
-    </Suspense>
   );
 }
